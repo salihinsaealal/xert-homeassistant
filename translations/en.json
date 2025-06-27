@@ -1,0 +1,21 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Xert Online Configuration",
+        "description": "Enter your Xert Online credentials to connect to your account.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to Xert Online",
+      "invalid_auth": "Invalid authentication credentials"
+    },
+    "abort": {
+      "already_configured": "Device is already configured"
+    }
+  }
+} 
