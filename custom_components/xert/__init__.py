@@ -12,6 +12,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import DOMAIN, UPDATE_INTERVAL
 from .coordinator import XertDataUpdateCoordinator
+from .version import __version__
 
 _LOGGER = logging.getLogger(__name__)
 
