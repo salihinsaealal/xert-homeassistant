@@ -1,5 +1,8 @@
 # Xert Online Home Assistant Integration
 
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
+[![version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/salihinsaealal/xert-homeassistant)
+
 Integrate your [Xert Online](https://www.xertonline.com/) fitness and training data directly into [Home Assistant](https://www.home-assistant.io/).
 
 ## Features
@@ -66,6 +69,9 @@ Integrate your [Xert Online](https://www.xertonline.com/) fitness and training d
 ## Privacy
 - OAuth tokens are stored locally and refreshed automatically.
 - No training data is stored beyond current values.
+
+## Version History
+- **1.0.0** - Initial release with basic sensor entities
 
 ## License
 MIT 

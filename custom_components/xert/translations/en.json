@@ -17,5 +17,24 @@
     "abort": {
       "already_configured": "Device is already configured"
     }
+  },
+  "entity": {
+    "sensor": {
+      "xert_fitness_status": {
+        "name": "Fitness Status"
+      },
+      "xert_training_progress": {
+        "name": "Training Progress"
+      },
+      "xert_workout_manager": {
+        "name": "Workout Manager"
+      },
+      "xert_recent_activity": {
+        "name": "Recent Activity"
+      },
+      "xert_token_status": {
+        "name": "Token Status"
+      }
+    }
   }
 } 
