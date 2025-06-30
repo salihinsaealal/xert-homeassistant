@@ -15,9 +15,15 @@ Integrate your [Xert Online](https://www.xertonline.com/) fitness and training d
   - Token Status
 - Automatic token refresh
 - Data updates every 15 minutes
-- Dashboard-ready entities
+- Beautiful dashboard-ready entities with Bubble Card support
+
+## Dashboard Example
+![Dashboard Example](dashboard_example.png)
 
 ## Installation
+
+### Prerequisites
+1. Install [Bubble Card](https://github.com/Clooos/Bubble-Card) from HACS Frontend if you want to use the example dashboard
 
 ### HACS (Recommended)
 1. Add this repository to HACS as a custom integration.
@@ -37,78 +43,121 @@ Integrate your [Xert Online](https://www.xertonline.com/) fitness and training d
 ## Entities and Attributes
 | Entity | State | Key Attributes |
 |--------|-------|---------------|
-| `sensor.[username]_fitness_status` | Training Load/Status | `training_status`, `threshold_power`, `high_intensity_energy`, `peak_power`, `form`, `signature_date` |
+| `sensor.[username]_fitness_status` | Training Load/Status | `training_status`, `threshold_power`, `high_intensity_energy`, `peak_power`, `form`, `signature_date`, `target_xss_low`, `target_xss_high`, `target_xss_peak`, `target_xss_total` |
 | `sensor.[username]_training_progress` | Daily XSS | `weekly_xss`, `monthly_xss`, `focus`, `progression_status`, `last_activity_date`, `target_xss`, `workout_difficulty` |
-| `sensor.[username]_workout_manager` | Number of Workouts | `total_workouts`, `workout_names`, `recommended_workout`, `workout_description`, `last_modified` |
-| `sensor.[username]_recent_activity` | Activity Name | `activity_date`, `activity_duration`, `activity_xss`, `activity_type`, `power_data_available`, `breakthrough_achieved` |
+| `sensor.[username]_workout_manager` | Number of Workouts | `total_workouts`, `workout_names`, `recommended_workout_name`, `recommended_workout_description`, `recommended_workout_type`, `recommended_workout_difficulty`, `last_modified` |
+| `sensor.[username]_recent_activity` | Activity Name | `activity_date`, `activity_timezone`, `activity_timestamp`, `activity_type`, `description`, `path` |
 | `sensor.[username]_token_status` | Token Validity | `token_expiry`, `refresh_token_available`, `last_successful_call` |
 
-> **Note:** Entity IDs are now always `sensor.{username}_fitness_status`, etc. The `xert_` prefix is no longer used anywhere.
+## Example Dashboard YAML
 
-## Example Dashboard YAML (Standard Lovelace)
-
-> This example uses only standard Home Assistant cards for maximum compatibility. Replace `[username]` with your Xert username.
+> This example uses the Bubble Card custom component for a beautiful, modern UI. Replace `[username]` with your Xert username.
 
 ```yaml
 type: vertical-stack
 cards:
-  - type: markdown
-    content: |
-      ## 🚴‍♂️ Xert Training Dashboard
+  - type: custom:bubble-card
+    card_type: separator
+    name: 🚴‍♂️ Xert Training Dashboard
+    icon: mdi:bike
+    styles: |
+      .bubble-line {
+        background: var(--primary-color);
+        opacity: 0.2;
+      }
+      .bubble-icon {
+        color: var(--primary-color);
+      }
   - type: horizontal-stack
     cards:
-      - type: entity
-        entity: sensor.[username]_fitness_status
-        name: Training Status
-        icon: mdi:account-heart
-      - type: entity
-        entity: sensor.[username]_fitness_status
-        name: XSS Target
-        icon: mdi:chart-bell-curve
-        attribute: target_xss
-  - type: horizontal-stack
-    cards:
-      - type: entity
+      - type: custom:bubble-card
+        card_type: button
         entity: sensor.[username]_workout_manager
         name: Recommended Workout
         icon: mdi:sword-cross
-        attribute: recommended_workout
+        show_name: true
+        show_icon: true
+        show_state: false
+        show_attribute: true
+        attribute: recommended_workout_name
+        tap_action:
+          action: more-info
+        styles: |
+          .bubble-button-card-container {
+            background: var(--ha-card-background, var(--card-background-color));
+            border: 1px solid var(--primary-color);
+          }
+          .bubble-icon {
+            color: var(--primary-color);
+          }
+        button_type: name
+      - type: custom:bubble-card
+        card_type: button
+        entity: sensor.[username]_fitness_status
+        name: Training Status
+        icon: mdi:account-heart
+        show_name: true
+        show_icon: true
+        show_state: true
+        tap_action:
+          action: more-info
+        styles: |
+          .bubble-button-card-container {
+            background: var(--ha-card-background, var(--card-background-color));
+            border: 1px solid var(--green-color);
+          }
+          .bubble-icon {
+            color: var(--green-color);
+          }
+        button_type: name
+  - type: custom:bubble-card
+    card_type: button
+    entity: sensor.[username]_fitness_status
+    name: XSS Target
+    icon: mdi:chart-bell-curve
+    show_name: true
+    show_icon: true
+    show_state: false
+    show_attribute: true
+    attribute: target_xss_total
+    tap_action:
+      action: more-info
+    styles: |
+      .bubble-button-card-container {
+        background: var(--ha-card-background, var(--card-background-color));
+        border: 1px solid var(--blue-color);
+      }
+      .bubble-icon {
+        color: var(--blue-color);
+      }
+    button_type: name
   - type: markdown
     content: >
       ### 💪 Training Recommendation
 
-      Your Training Status is **{{ states('sensor.[username]_fitness_status') }}**
-      and you should consider a **{{
-      state_attr('sensor.[username]_workout_manager', 'recommended_workout') }}**
-      workout generating about **{{ state_attr('sensor.[username]_fitness_status',
-      'target_xss')['total'] | round(2)}} XSS** 
+      **Status:** {{ states('sensor.[username]_fitness_status') }} | **Workout:**
+      {{ state_attr('sensor.[username]_workout_manager',
+      'recommended_workout_name') }} | **XSS:** {{
+      state_attr('sensor.[username]_fitness_status', 'target_xss_total') | round(2)
+      }}
 
-      <br> **Description:** {{ state_attr('sensor.[username]_workout_manager',
-      'workout_description') }}
+      **Description:** {{ state_attr('sensor.[username]_workout_manager',
+      'recommended_workout_description') }}
 
-      <br>
-
-      **Last Workout Date:** {{ (state_attr('sensor.[username]_recent_activity',
-      'start_date') | as_datetime + timedelta(hours=8)).timestamp() |
+      **Last Workout:** {{ (state_attr('sensor.[username]_recent_activity',
+      'activity_date') | as_datetime + timedelta(hours=8)).timestamp() |
       timestamp_custom('%A, %d %B %Y, %I:%M %p') }}
-    conditions:
-      - entity: sensor.[username]_fitness_status
-        state: unknown
-    card:
-      type: markdown
-      content: >
-        <ha-icon icon="mdi:alert-circle-outline" style="color:
-        #2196f3;"></ha-icon> **No data?** Go to Node-RED and click "**Manual
-        Test**" or "**Force Update**"
 ```
 
 ### How to Use
-1. Copy the YAML above.
-2. In Home Assistant, go to your dashboard, click the three dots (⋮) → Edit Dashboard → Add Card → Manual.
-3. Paste the YAML and save.
+1. Install [Bubble Card](https://github.com/Clooos/Bubble-Card) from HACS Frontend
+2. Copy the YAML above
+3. In Home Assistant, go to your dashboard, click the three dots (⋮) → Edit Dashboard → Add Card → Manual
+4. Paste the YAML and save
+5. Replace `[username]` with your Xert username
 
 ## Troubleshooting
-- Check `sensor.[username]_token_status` for API/auth issues.
+- Check `sensor.[username]_token_status` for API/auth issues
 - Enable debug logging in `configuration.yaml`:
   ```yaml
   logger:
@@ -116,11 +165,11 @@ cards:
     logs:
       custom_components.xert: debug
   ```
-- For Xert account issues, contact [Xert support](mailto:support@xertonline.com).
+- For Xert account issues, contact [Xert support](mailto:support@xertonline.com)
 
 ## Privacy
-- OAuth tokens are stored locally and refreshed automatically.
-- No training data is stored beyond current values.
+- OAuth tokens are stored locally and refreshed automatically
+- No training data is stored beyond current values
 
 ## Version History
 - **1.0.2** - Add recommended workout and details to workout_manager sensor; entity IDs now use username prefix

@@ -6,5 +6,6 @@
   "iot_class": "Cloud Polling",
   "version": "1.0.0",
   "filename": "custom_components/xert/manifest.json",
-  "icon": "logo.png"
+  "icon": "icon.png",
+  "logo": "logo.png"
 } 
