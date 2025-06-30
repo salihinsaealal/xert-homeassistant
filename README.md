@@ -43,9 +43,11 @@ Integrate your [Xert Online](https://www.xertonline.com/) fitness and training d
 | `sensor.[username]_recent_activity` | Activity Name | `activity_date`, `activity_duration`, `activity_xss`, `activity_type`, `power_data_available`, `breakthrough_achieved` |
 | `sensor.[username]_token_status` | Token Validity | `token_expiry`, `refresh_token_available`, `last_successful_call` |
 
+> **Note:** Entity IDs are now always `sensor.{username}_fitness_status`, etc. The `xert_` prefix is no longer used anywhere.
+
 ## Example Dashboard YAML (Standard Lovelace)
 
-> This example uses only standard Home Assistant cards for maximum compatibility. Replace `[username]` with your Xert username.
+> This example uses only standard Home Assistant cards for maximum compatibility. Replace `[username]` with your Xert username. The entity IDs are now always `sensor.{username}_fitness_status`, etc.
 
 ```yaml
 type: vertical-stack
@@ -67,7 +69,7 @@ cards:
   - type: horizontal-stack
     cards:
       - type: entity
-        entity: sensor.[username]_training_progress
+        entity: sensor.[username]_workout_manager
         name: Difficulty
         icon: mdi:diamond-stone
         attribute: workout_difficulty
@@ -80,6 +82,12 @@ cards:
     content: |
       ### 💪 Training Recommendation
       Your Training Status is **{{ state_attr('sensor.[username]_fitness_status', 'training_status') }}** and you should consider a **{{ state_attr('sensor.[username]_workout_manager', 'recommended_workout') }}** workout generating about **{{ state_attr('sensor.[username]_training_progress', 'target_xss') }} XSS** with **{{ state_attr('sensor.[username]_workout_manager', 'workout_difficulty') }}** difficulty.
+      <br>
+      **Description:** {{ state_attr('sensor.[username]_workout_manager', 'workout_description') }}
+      <br>
+      **Duration:** {{ state_attr('sensor.[username]_workout_manager', 'workout_duration') }} min
+      <br>
+      **Last Workout Date:** {{ state_attr('sensor.[username]_workout_manager', 'last_workout_date') }}
   - type: conditional
     conditions:
       - entity: sensor.[username]_fitness_status
