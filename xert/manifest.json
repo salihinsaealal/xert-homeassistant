@@ -1,9 +1,9 @@
 {
   "domain": "xert",
   "name": "Xert Online",
-  "documentation": "https://github.com/your-repo/xert-homeassistant",
+  "documentation": "https://github.com/salihinsaealal/xert-homeassistant",
   "dependencies": [],
-  "codeowners": ["@your-username"],
+  "codeowners": ["@salihinsaealal"],
   "requirements": ["aiohttp>=3.8.0"],
   "version": "1.0.0",
   "config_flow": true,
