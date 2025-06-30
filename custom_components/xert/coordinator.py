@@ -164,20 +164,28 @@ class XertDataUpdateCoordinator(DataUpdateCoordinator):
 
         signature = training_info.get("signature", {})
         tl = training_info.get("tl", {})
+        target_xss = training_info.get("targetXSS", {})
         
         return {
             "state": training_info.get("status", "Unknown"),
             "attributes": {
-                "ftp": signature.get("ftp"),
-                "ltp": signature.get("ltp"),
-                "hie": signature.get("hie"),
-                "pp": signature.get("pp"),
+                # Flattened signature attributes
+                "signature_ftp": signature.get("ftp"),
+                "signature_ltp": signature.get("ltp"),
+                "signature_hie": signature.get("hie"),
+                "signature_pp": signature.get("pp"),
+                # Base attributes
                 "weight": training_info.get("weight"),
+                # Flattened training load attributes
                 "training_load_low": tl.get("low"),
                 "training_load_high": tl.get("high"),
                 "training_load_peak": tl.get("peak"),
                 "training_load_total": tl.get("total"),
-                "target_xss": training_info.get("targetXSS", {}),
+                # Flattened target XSS attributes
+                "target_xss_low": target_xss.get("low"),
+                "target_xss_high": target_xss.get("high"),
+                "target_xss_peak": target_xss.get("peak"),
+                "target_xss_total": target_xss.get("total"),
                 "source": training_info.get("source"),
             },
         }
@@ -192,11 +200,12 @@ class XertDataUpdateCoordinator(DataUpdateCoordinator):
         return {
             "state": wotd.get("difficulty", 0),
             "attributes": {
-                "workout_of_the_day": wotd.get("name"),
-                "workout_type": wotd.get("type"),
-                "workout_description": wotd.get("description"),
-                "workout_id": wotd.get("workoutId"),
-                "workout_url": wotd.get("url"),
+                # Flattened workout of the day attributes
+                "wotd_name": wotd.get("name"),
+                "wotd_type": wotd.get("type"),
+                "wotd_description": wotd.get("description"),
+                "wotd_id": wotd.get("workoutId"),
+                "wotd_url": wotd.get("url"),
                 "last_activity_date": self._get_last_activity_date(activities),
             },
         }
@@ -214,8 +223,11 @@ class XertDataUpdateCoordinator(DataUpdateCoordinator):
             "attributes": {
                 "total_workouts": len(workout_list),
                 "workout_names": [w.get("name") for w in workout_list],
-                "recommended_workout": recommended.get("name"),
-                "workout_description": recommended.get("description"),
+                # Flattened recommended workout attributes
+                "recommended_workout_name": recommended.get("name"),
+                "recommended_workout_description": recommended.get("description"),
+                "recommended_workout_type": recommended.get("type", ""),
+                "recommended_workout_difficulty": recommended.get("difficulty", 0),
                 "last_modified": self._get_last_workout_date(workout_list),
             },
         }
@@ -227,12 +239,16 @@ class XertDataUpdateCoordinator(DataUpdateCoordinator):
 
         activity_list = activities.get("activities", [])
         recent = activity_list[0] if activity_list else {}
+        start_date = recent.get("start_date", {})
 
         return {
             "state": recent.get("name", "No recent activity"),
             "attributes": {
                 "activity_type": recent.get("activity_type"),
-                "start_date": recent.get("start_date", {}).get("date"),
+                # Flattened start date attributes
+                "activity_date": start_date.get("date"),
+                "activity_timezone": start_date.get("timezone"),
+                "activity_timestamp": start_date.get("timestamp"),
                 "description": recent.get("description"),
                 "path": recent.get("path"),
             },
