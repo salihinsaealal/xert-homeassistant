@@ -18,7 +18,7 @@ Integrate your [Xert Online](https://www.xertonline.com/) fitness and training d
 - Beautiful dashboard-ready entities with Bubble Card support
 
 ## Dashboard Example
-![Dashboard Example](dashboard_example.png)
+![Dashboard Example](dashboard_example_v2.png)
 
 ## Installation
 
