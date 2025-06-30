@@ -47,7 +47,7 @@ Integrate your [Xert Online](https://www.xertonline.com/) fitness and training d
 
 ## Example Dashboard YAML (Standard Lovelace)
 
-> This example uses only standard Home Assistant cards for maximum compatibility. Replace `[username]` with your Xert username. The entity IDs are now always `sensor.{username}_fitness_status`, etc.
+> This example uses only standard Home Assistant cards for maximum compatibility. Replace `[username]` with your Xert username.
 
 ```yaml
 type: vertical-stack
@@ -62,7 +62,7 @@ cards:
         name: Training Status
         icon: mdi:account-heart
       - type: entity
-        entity: sensor.[username]_training_progress
+        entity: sensor.[username]_fitness_status
         name: XSS Target
         icon: mdi:chart-bell-curve
         attribute: target_xss
@@ -74,21 +74,32 @@ cards:
         icon: mdi:sword-cross
         attribute: recommended_workout
   - type: markdown
-    content: |
+    content: >
       ### 💪 Training Recommendation
-      Your Training Status is **{{ state_attr('sensor.[username]_fitness_status', 'training_status') }}** and you should consider a **{{ state_attr('sensor.[username]_workout_manager', 'recommended_workout') }}** workout.
+
+      Your Training Status is **{{ states('sensor.[username]_fitness_status') }}**
+      and you should consider a **{{
+      state_attr('sensor.[username]_workout_manager', 'recommended_workout') }}**
+      workout generating about **{{ state_attr('sensor.[username]_fitness_status',
+      'target_xss')['total'] | round(2)}} XSS** 
+
+      <br> **Description:** {{ state_attr('sensor.[username]_workout_manager',
+      'workout_description') }}
+
       <br>
-      **Description:** {{ state_attr('sensor.[username]_workout_manager', 'workout_description') }}
-      <br>
-      **Last Modified:** {{ state_attr('sensor.[username]_workout_manager', 'last_modified') }}
-  - type: conditional
+
+      **Last Workout Date:** {{ (state_attr('sensor.[username]_recent_activity',
+      'start_date') | as_datetime + timedelta(hours=8)).timestamp() |
+      timestamp_custom('%A, %d %B %Y, %I:%M %p') }}
     conditions:
       - entity: sensor.[username]_fitness_status
-        state: "unknown"
+        state: unknown
     card:
       type: markdown
-      content: |
-        <ha-icon icon="mdi:alert-circle-outline" style="color: #2196f3;"></ha-icon> **No data?** Go to Node-RED and click "**Manual Test**" or "**Force Update**"
+      content: >
+        <ha-icon icon="mdi:alert-circle-outline" style="color:
+        #2196f3;"></ha-icon> **No data?** Go to Node-RED and click "**Manual
+        Test**" or "**Force Update**"
 ```
 
 ### How to Use
