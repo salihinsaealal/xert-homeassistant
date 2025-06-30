@@ -34,26 +34,66 @@ Integrate your [Xert Online](https://www.xertonline.com/) fitness and training d
 3. Enter your Xert Online username and password.
 4. Complete the setup.
 
-## Entities
-| Entity                        | Description                        |
-|-------------------------------|------------------------------------|
-| `sensor.xert_fitness_status`  | Current fitness metrics            |
-| `sensor.xert_training_progress`| Training progression               |
-| `sensor.xert_workout_manager` | Workout recommendations            |
-| `sensor.xert_recent_activity` | Latest activity data               |
-| `sensor.xert_token_status`    | API connection status              |
+## Entities and Attributes
+| Entity | State | Key Attributes |
+|--------|-------|---------------|
+| `sensor.xert_fitness_status` | Training Load/Status | `training_status`, `threshold_power`, `high_intensity_energy`, `peak_power`, `form`, `signature_date` |
+| `sensor.xert_training_progress` | Daily XSS | `weekly_xss`, `monthly_xss`, `focus`, `progression_status`, `last_activity_date`, `target_xss`, `workout_difficulty` |
+| `sensor.xert_workout_manager` | Number of Workouts | `recommended_workout`, `workout_description`, `workout_duration`, `workout_difficulty`, `last_workout_date` |
+| `sensor.xert_recent_activity` | Activity Name | `activity_date`, `activity_duration`, `activity_xss`, `activity_type`, `power_data_available`, `breakthrough_achieved` |
+| `sensor.xert_token_status` | Token Validity | `token_expiry`, `refresh_token_available`, `last_successful_call` |
 
-## Example Dashboard YAML
+## Example Dashboard YAML (Standard Lovelace)
+
+> This example uses only standard Home Assistant cards for maximum compatibility. It closely matches the dashboard style in the provided image.
+
 ```yaml
-# Add to your dashboard
-- type: entities
-  entities:
-    - sensor.xert_fitness_status
-    - sensor.xert_training_progress
-    - sensor.xert_workout_manager
-    - sensor.xert_recent_activity
-    - sensor.xert_token_status
+type: vertical-stack
+cards:
+  - type: markdown
+    content: |
+      ## 🚴‍♂️ Xert Training Dashboard
+  - type: horizontal-stack
+    cards:
+      - type: entity
+        entity: sensor.xert_fitness_status
+        name: Training Status
+        icon: mdi:account-heart
+      - type: entity
+        entity: sensor.xert_training_progress
+        name: XSS Target
+        icon: mdi:chart-bell-curve
+        attribute: target_xss
+  - type: horizontal-stack
+    cards:
+      - type: entity
+        entity: sensor.xert_training_progress
+        name: Difficulty
+        icon: mdi:diamond-stone
+        attribute: workout_difficulty
+      - type: entity
+        entity: sensor.xert_workout_manager
+        name: Recommended Workout
+        icon: mdi:sword-cross
+        attribute: recommended_workout
+  - type: markdown
+    content: |
+      ### 💪 Training Recommendation
+      Your Training Status is **{{ state_attr('sensor.xert_fitness_status', 'training_status') }}** and you should consider a **{{ state_attr('sensor.xert_workout_manager', 'recommended_workout') }}** workout generating about **{{ state_attr('sensor.xert_training_progress', 'target_xss') }} XSS** with **{{ state_attr('sensor.xert_training_progress', 'workout_difficulty') }}** difficulty.
+  - type: conditional
+    conditions:
+      - entity: sensor.xert_fitness_status
+        state: "unknown"
+    card:
+      type: markdown
+      content: |
+        <ha-icon icon="mdi:alert-circle-outline" style="color: #2196f3;"></ha-icon> **No data?** Go to Node-RED and click "**Manual Test**" or "**Force Update**"
 ```
+
+### How to Use
+1. Copy the YAML above.
+2. In Home Assistant, go to your dashboard, click the three dots (⋮) → Edit Dashboard → Add Card → Manual.
+3. Paste the YAML and save.
 
 ## Troubleshooting
 - Check `sensor.xert_token_status` for API/auth issues.

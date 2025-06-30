@@ -69,6 +69,7 @@ class XertFitnessStatusSensor(XertSensor):
         super().__init__(coordinator, SENSOR_FITNESS_STATUS)
         self._attr_name = "Fitness Status"
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{SENSOR_FITNESS_STATUS}"
+        self._attr_entity_id = f"sensor.xert_{SENSOR_FITNESS_STATUS}"
 
     @property
     def state(self) -> StateType:
@@ -91,6 +92,7 @@ class XertTrainingProgressSensor(XertSensor):
         super().__init__(coordinator, SENSOR_TRAINING_PROGRESS)
         self._attr_name = "Training Progress"
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{SENSOR_TRAINING_PROGRESS}"
+        self._attr_entity_id = f"sensor.xert_{SENSOR_TRAINING_PROGRESS}"
 
     @property
     def state(self) -> StateType:
@@ -113,6 +115,7 @@ class XertWorkoutManagerSensor(XertSensor):
         super().__init__(coordinator, SENSOR_WORKOUT_MANAGER)
         self._attr_name = "Workout Manager"
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{SENSOR_WORKOUT_MANAGER}"
+        self._attr_entity_id = f"sensor.xert_{SENSOR_WORKOUT_MANAGER}"
 
     @property
     def state(self) -> StateType:
@@ -135,6 +138,7 @@ class XertRecentActivitySensor(XertSensor):
         super().__init__(coordinator, SENSOR_RECENT_ACTIVITY)
         self._attr_name = "Recent Activity"
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{SENSOR_RECENT_ACTIVITY}"
+        self._attr_entity_id = f"sensor.xert_{SENSOR_RECENT_ACTIVITY}"
 
     @property
     def state(self) -> StateType:
@@ -157,6 +161,7 @@ class XertTokenStatusSensor(XertSensor):
         super().__init__(coordinator, SENSOR_TOKEN_STATUS)
         self._attr_name = "Token Status"
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{SENSOR_TOKEN_STATUS}"
+        self._attr_entity_id = f"sensor.xert_{SENSOR_TOKEN_STATUS}"
 
     @property
     def state(self) -> StateType:
