@@ -1,7 +1,7 @@
 # Xert Online Home Assistant Integration
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![version](https://img.shields.io/badge/version-1.0.2-blue.svg)](https://github.com/salihinsaealal/xert-homeassistant)
+[![version](https://img.shields.io/badge/version-1.0.5-blue.svg)](https://github.com/salihinsaealal/xert-homeassistant)
 
 Integrate your [Xert Online](https://www.xertonline.com/) fitness and training data directly into [Home Assistant](https://www.home-assistant.io/).
 
@@ -26,13 +26,19 @@ Integrate your [Xert Online](https://www.xertonline.com/) fitness and training d
 1. Install [Bubble Card](https://github.com/Clooos/Bubble-Card) from HACS Frontend if you want to use the example dashboard
 
 ### HACS (Recommended)
-1. Add this repository to HACS as a custom integration.
-2. Search for "Xert Online" in HACS > Integrations.
-3. Install and restart Home Assistant.
+1. Open HACS in your Home Assistant instance
+2. Go to the three dots menu (⋮) in the top right corner
+3. Select "Custom repositories"
+4. Add this repository URL: `https://github.com/salihinsaealal/xert-homeassistant`
+5. Select category: "Integration"
+6. Click "Add"
+7. Search for "Xert Online" in HACS > Integrations
+8. Click "Download"
+9. Restart Home Assistant
 
 ### Manual
-1. Copy the `xert` folder to your `config/custom_components/` directory.
-2. Restart Home Assistant.
+1. Copy the `xert` folder to your `config/custom_components/` directory
+2. Restart Home Assistant
 
 ## Configuration
 1. Go to **Settings > Devices & Services** in Home Assistant.
@@ -172,6 +178,7 @@ cards:
 - No training data is stored beyond current values
 
 ## Version History
+- **1.0.5** - Fixed HACS icon display issues, updated icon and logo files
 - **1.0.2** - Add recommended workout and details to workout_manager sensor; entity IDs now use username prefix
 - **1.0.1** - Bugfixes, entity_id prefix, improved docs, and dashboard example
 - **1.0.0** - Initial release with basic sensor entities

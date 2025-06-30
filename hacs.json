@@ -4,7 +4,7 @@
   "domains": ["sensor"],
   "homeassistant": "2023.8.0",
   "iot_class": "Cloud Polling",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "filename": "custom_components/xert/manifest.json",
   "icon": "icon.png",
   "logo": "logo.png"
