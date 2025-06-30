@@ -16,6 +16,7 @@ from .const import (
     SENSOR_WORKOUT_MANAGER,
     SENSOR_RECENT_ACTIVITY,
     SENSOR_TOKEN_STATUS,
+    SENSOR_WOTD,
 )
 from .coordinator import XertDataUpdateCoordinator
 
@@ -35,6 +36,7 @@ async def async_setup_entry(
             XertWorkoutManagerSensor(coordinator),
             XertRecentActivitySensor(coordinator),
             XertTokenStatusSensor(coordinator),
+            XertWOTDSensor(coordinator),
         ]
     )
 
@@ -173,4 +175,27 @@ class XertTokenStatusSensor(XertSensor):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return entity specific state attributes."""
         data = self.coordinator.data.get("token_status", {})
+        return data.get("attributes", {})
+
+
+class XertWOTDSensor(XertSensor):
+    """Representation of Xert Workout of the Day sensor."""
+
+    def __init__(self, coordinator: XertDataUpdateCoordinator) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, SENSOR_WOTD)
+        username = self.coordinator.config_data.get("username", "xert")
+        self._attr_name = f"{username}_wotd"
+        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{SENSOR_WOTD}"
+
+    @property
+    def state(self) -> StateType:
+        """Return the state of the sensor (WOTD name)."""
+        data = self.coordinator.data.get("wotd", {})
+        return data.get("state", None)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return entity specific state attributes for WOTD."""
+        data = self.coordinator.data.get("wotd", {})
         return data.get("attributes", {}) 

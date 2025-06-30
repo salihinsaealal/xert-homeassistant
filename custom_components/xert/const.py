@@ -34,6 +34,7 @@ SENSOR_TRAINING_PROGRESS = "training_progress"
 SENSOR_WORKOUT_MANAGER = "workout_manager"
 SENSOR_RECENT_ACTIVITY = "recent_activity"
 SENSOR_TOKEN_STATUS = "token_status"
+SENSOR_WOTD = "wotd"
 
 # Default values
 DEFAULT_NAME = "Xert Online" 

@@ -78,6 +78,7 @@ class XertDataUpdateCoordinator(DataUpdateCoordinator):
                 "workout_manager": self._process_workout_manager(workouts),
                 "recent_activity": self._process_recent_activity(activities),
                 "token_status": self._process_token_status(),
+                "wotd": self._process_wotd(training_info),
             }
 
         except Exception as err:
@@ -162,32 +163,10 @@ class XertDataUpdateCoordinator(DataUpdateCoordinator):
         if not training_info.get("success"):
             return {"state": "Unknown", "attributes": {}}
 
-        signature = training_info.get("signature", {})
-        tl = training_info.get("tl", {})
-        target_xss = training_info.get("targetXSS", {})
-        
+        # Only keep status as state, and minimal unique attributes if available
         return {
             "state": training_info.get("status", "Unknown"),
-            "attributes": {
-                # Flattened signature attributes
-                "signature_ftp": signature.get("ftp"),
-                "signature_ltp": signature.get("ltp"),
-                "signature_hie": signature.get("hie"),
-                "signature_pp": signature.get("pp"),
-                # Base attributes
-                "weight": training_info.get("weight"),
-                # Flattened training load attributes
-                "training_load_low": tl.get("low"),
-                "training_load_high": tl.get("high"),
-                "training_load_peak": tl.get("peak"),
-                "training_load_total": tl.get("total"),
-                # Flattened target XSS attributes
-                "target_xss_low": target_xss.get("low"),
-                "target_xss_high": target_xss.get("high"),
-                "target_xss_peak": target_xss.get("peak"),
-                "target_xss_total": target_xss.get("total"),
-                "source": training_info.get("source"),
-            },
+            "attributes": {},
         }
 
     def _process_training_progress(self, training_info: dict, activities: dict) -> dict:
@@ -195,19 +174,29 @@ class XertDataUpdateCoordinator(DataUpdateCoordinator):
         if not training_info.get("success"):
             return {"state": 0, "attributes": {}}
 
-        wotd = training_info.get("wotd", {})
-        
+        signature = training_info.get("signature", {})
+        tl = training_info.get("tl", {})
+        target_xss = training_info.get("targetXSS", {})
+        attrs = {
+            "weight": training_info.get("weight"),
+            "signature_ftp": signature.get("ftp"),
+            "signature_ltp": signature.get("ltp"),
+            "signature_hie": signature.get("hie"),
+            "signature_pp": signature.get("pp"),
+            "tl_low": tl.get("low"),
+            "tl_high": tl.get("high"),
+            "tl_peak": tl.get("peak"),
+            "tl_total": tl.get("total"),
+            "target_xss_low": target_xss.get("low"),
+            "target_xss_high": target_xss.get("high"),
+            "target_xss_peak": target_xss.get("peak"),
+            "target_xss_total": target_xss.get("total"),
+            "source": training_info.get("source"),
+            "success": training_info.get("success"),
+        }
         return {
-            "state": wotd.get("difficulty", 0),
-            "attributes": {
-                # Flattened workout of the day attributes
-                "wotd_name": wotd.get("name"),
-                "wotd_type": wotd.get("type"),
-                "wotd_description": wotd.get("description"),
-                "wotd_id": wotd.get("workoutId"),
-                "wotd_url": wotd.get("url"),
-                "last_activity_date": self._get_last_activity_date(activities),
-            },
+            "state": 0,
+            "attributes": attrs,
         }
 
     def _process_workout_manager(self, workouts: dict) -> dict:
@@ -287,3 +276,19 @@ class XertDataUpdateCoordinator(DataUpdateCoordinator):
             if timestamp:
                 return datetime.fromtimestamp(timestamp).isoformat()
         return None
+
+    def _process_wotd(self, training_info: dict) -> dict:
+        """Process Workout of the Day (WOTD) data."""
+        wotd = training_info.get("wotd", {})
+        if not wotd:
+            return {"state": None, "attributes": {}}
+        return {
+            "state": wotd.get("name"),
+            "attributes": {
+                "type": wotd.get("type"),
+                "description": wotd.get("description"),
+                "workout_id": wotd.get("workoutId"),
+                "url": wotd.get("url"),
+                "difficulty": wotd.get("difficulty"),
+            },
+        }

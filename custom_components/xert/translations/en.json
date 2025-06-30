@@ -34,6 +34,9 @@
       },
       "xert_token_status": {
         "name": "Token Status"
+      },
+      "xert_wotd": {
+        "name": "Workout of the Day"
       }
     }
   }
