@@ -216,9 +216,6 @@ class XertDataUpdateCoordinator(DataUpdateCoordinator):
                 "workout_names": [w.get("name") for w in workout_list],
                 "recommended_workout": recommended.get("name"),
                 "workout_description": recommended.get("description"),
-                "workout_duration": recommended.get("estimated_duration"),
-                "workout_difficulty": recommended.get("difficulty"),
-                "last_workout_date": self._get_last_workout_date(workout_list),
                 "last_modified": self._get_last_workout_date(workout_list),
             },
         }

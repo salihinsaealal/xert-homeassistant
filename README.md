@@ -39,7 +39,7 @@ Integrate your [Xert Online](https://www.xertonline.com/) fitness and training d
 |--------|-------|---------------|
 | `sensor.[username]_fitness_status` | Training Load/Status | `training_status`, `threshold_power`, `high_intensity_energy`, `peak_power`, `form`, `signature_date` |
 | `sensor.[username]_training_progress` | Daily XSS | `weekly_xss`, `monthly_xss`, `focus`, `progression_status`, `last_activity_date`, `target_xss`, `workout_difficulty` |
-| `sensor.[username]_workout_manager` | Number of Workouts | `total_workouts`, `workout_names`, `recommended_workout`, `workout_description`, `workout_duration`, `workout_difficulty`, `last_workout_date`, `last_modified` |
+| `sensor.[username]_workout_manager` | Number of Workouts | `total_workouts`, `workout_names`, `recommended_workout`, `workout_description`, `last_modified` |
 | `sensor.[username]_recent_activity` | Activity Name | `activity_date`, `activity_duration`, `activity_xss`, `activity_type`, `power_data_available`, `breakthrough_achieved` |
 | `sensor.[username]_token_status` | Token Validity | `token_expiry`, `refresh_token_available`, `last_successful_call` |
 
@@ -70,24 +70,17 @@ cards:
     cards:
       - type: entity
         entity: sensor.[username]_workout_manager
-        name: Difficulty
-        icon: mdi:diamond-stone
-        attribute: workout_difficulty
-      - type: entity
-        entity: sensor.[username]_workout_manager
         name: Recommended Workout
         icon: mdi:sword-cross
         attribute: recommended_workout
   - type: markdown
     content: |
       ### 💪 Training Recommendation
-      Your Training Status is **{{ state_attr('sensor.[username]_fitness_status', 'training_status') }}** and you should consider a **{{ state_attr('sensor.[username]_workout_manager', 'recommended_workout') }}** workout generating about **{{ state_attr('sensor.[username]_training_progress', 'target_xss') }} XSS** with **{{ state_attr('sensor.[username]_workout_manager', 'workout_difficulty') }}** difficulty.
+      Your Training Status is **{{ state_attr('sensor.[username]_fitness_status', 'training_status') }}** and you should consider a **{{ state_attr('sensor.[username]_workout_manager', 'recommended_workout') }}** workout.
       <br>
       **Description:** {{ state_attr('sensor.[username]_workout_manager', 'workout_description') }}
       <br>
-      **Duration:** {{ state_attr('sensor.[username]_workout_manager', 'workout_duration') }} min
-      <br>
-      **Last Workout Date:** {{ state_attr('sensor.[username]_workout_manager', 'last_workout_date') }}
+      **Last Modified:** {{ state_attr('sensor.[username]_workout_manager', 'last_modified') }}
   - type: conditional
     conditions:
       - entity: sensor.[username]_fitness_status
