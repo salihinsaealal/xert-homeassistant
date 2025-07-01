@@ -20,8 +20,8 @@ Integrate your [Xert Online](https://www.xertonline.com/) fitness and training d
 - Beautiful dashboard-ready entities with Bubble Card support
 
 ## Dashboard Example
-![Dashboard Example](dashboard_example_v2.png)
- - Difficulties in this image is converted into diamond level indicator using helper in HomeAssistant.
+<center><img src="dashboard_example_v2.png" alt="Dashboard Example" width="50%"></center>
+- Difficulties in this image is converted into diamond level indicator using helper in HomeAssistant.
 
 ## Installation
 
