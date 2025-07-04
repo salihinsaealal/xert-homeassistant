@@ -1,0 +1,109 @@
+type: vertical-stack
+cards:
+  - type: custom:bubble-card
+    card_type: separator
+    name: 🚴‍♂️ Xert Training Dashboard
+    icon: mdi:bike
+    styles: |
+      .bubble-line {
+        background: var(--primary-color);
+        opacity: 0.2;
+      }
+      .bubble-icon {
+        color: var(--primary-color);
+      }
+  - type: horizontal-stack
+    cards:
+      - type: custom:bubble-card
+        card_type: button
+        entity: sensor.[username]_fitness_status
+        name: Training Status
+        icon: mdi:account-heart
+        show_name: true
+        show_icon: true
+        show_state: true
+        tap_action:
+          action: more-info
+        styles: |
+          .bubble-button-card-container {
+            background: var(--ha-card-background, var(--card-background-color));
+            border: 1px solid var(--green-color);
+          }
+          .bubble-icon {
+            color: var(--green-color);
+          }
+        button_type: name
+      - type: custom:bubble-card
+        card_type: button
+        entity: sensor.[username]_training_progress
+        name: XSS Target
+        icon: mdi:chart-bell-curve
+        show_name: true
+        show_icon: true
+        show_state: false
+        show_attribute: true
+        attribute: target_xss_total
+        tap_action:
+          action: more-info
+        styles: |
+          .bubble-button-card-container {
+            background: var(--ha-card-background, var(--card-background-color));
+            border: 1px solid var(--blue-color);
+          }
+          .bubble-icon {
+            color: var(--blue-color);
+          }
+        button_type: name
+  - type: horizontal-stack
+    cards:
+      - type: custom:bubble-card
+        card_type: button
+        entity: sensor.[username]_wotd
+        name: Workout of the Day
+        icon: mdi:sword-cross
+        show_name: true
+        show_icon: true
+        show_state: true
+        show_attribute: true
+        attribute: name
+        tap_action:
+          action: more-info
+        styles: |
+          .bubble-button-card-container {
+            background: var(--ha-card-background, var(--card-background-color));
+            border: 1px solid var(--primary-color);
+          }
+          .bubble-icon {
+            color: var(--primary-color);
+          }
+        button_type: name
+      - type: custom:bubble-card
+        card_type: button
+        entity: sensor.[username]_wotd
+        name: Difficulties
+        icon: mdi:saw-blade
+        show_name: true
+        show_icon: true
+        show_state: true
+        show_attribute: false
+        attribute: difficulty
+        tap_action:
+          action: more-info
+        styles: |
+          .bubble-button-card-container {
+            background: var(--ha-card-background, var(--card-background-color));
+            border: 1px solid var(--primary-color);
+          }
+          .bubble-icon {
+            color: var(--primary-color);
+          }
+        button_type: switch
+  - type: markdown
+    content: >
+      ### 💪 Training Recommendation
+
+      **Status:** {{ states('sensor.[username]_fitness_status') }} | **Workout Suggestion:** {{ states('sensor.[username]_wotd') }} | **XSS:** {{ state_attr('sensor.[username]_training_progress', 'target_xss_total') | round(2) }}
+
+      **Description:** {{ state_attr('sensor.[username]_wotd', 'description') }}
+
+      **Last Workout:** {{ (state_attr('sensor.[username]_recent_activity', 'activity_date') | as_datetime + timedelta(hours=8)).timestamp() | timestamp_custom('%A, %d %B %Y, %I:%M %p') }} 
