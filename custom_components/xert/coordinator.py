@@ -205,19 +205,12 @@ class XertDataUpdateCoordinator(DataUpdateCoordinator):
             return {"state": 0, "attributes": {}}
 
         workout_list = workouts.get("workouts", [])
-        recommended = workout_list[0] if workout_list else {}
-        
         return {
             "state": len(workout_list),
             "attributes": {
                 "total_workouts": len(workout_list),
-                "workout_names": [w.get("name") for w in workout_list],
-                # Flattened recommended workout attributes
-                "recommended_workout_name": recommended.get("name"),
-                "recommended_workout_description": recommended.get("description"),
-                "recommended_workout_type": recommended.get("type", ""),
-                "recommended_workout_difficulty": recommended.get("difficulty", 0),
                 "last_modified": self._get_last_workout_date(workout_list),
+                "sample_workouts": [w.get("name") for w in workout_list[:3]],
             },
         }
 

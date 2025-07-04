@@ -1,4 +1,3 @@
-# ![logo@0.5x](logo.png)
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 [![Open in HACS](https://img.shields.io/badge/-Add%20with%20HACS-41BDF5?logo=home-assistant&logoColor=white&style=flat-square)](https://my.home-assistant.io/redirect/hacs_repository/?owner=salihinsaealal&repository=xert-homeassistant&category=integration)
 [![Open in Home Assistant](https://img.shields.io/badge/-Open%20in%20Home%20Assistant-41BDF5?logo=home-assistant&logoColor=white&style=flat-square)](https://my.home-assistant.io/redirect/integration/?domain=xert)
@@ -9,12 +8,13 @@ Integrate your [Xert Online](https://www.xertonline.com/) fitness and training d
 
 ## Features
 - OAuth2 authentication with Xert Online
-- 5 sensor entities:
+- 6 sensor entities:
   - Fitness Status
   - Training Progress
   - Workout Manager
   - Recent Activity
   - Token Status
+  - Workout of the Day (WOTD)
 - Automatic token refresh
 - Data updates every 15 minutes
 - Beautiful dashboard-ready entities with Bubble Card support
@@ -55,7 +55,7 @@ Integrate your [Xert Online](https://www.xertonline.com/) fitness and training d
 | `sensor.[username]_fitness_status` | Training Status | *(none)* |
 | `sensor.[username]_training_progress` | 0 | `weight`, `signature_ftp`, `signature_ltp`, `signature_hie`, `signature_pp`, `tl_low`, `tl_high`, `tl_peak`, `tl_total`, `target_xss_low`, `target_xss_high`, `target_xss_peak`, `target_xss_total`, `source`, `success` |
 | `sensor.[username]_wotd` | Workout Name | `type`, `description`, `workout_id`, `url`, `difficulty` |
-| `sensor.[username]_workout_manager` | Number of Workouts | `total_workouts`, `workout_names`, `recommended_workout_name`, `recommended_workout_description`, `recommended_workout_type`, `recommended_workout_difficulty`, `last_modified` |
+| `sensor.[username]_workout_manager` | Number of Workouts | `total_workouts`, `last_modified`, `sample_workouts` |
 | `sensor.[username]_recent_activity` | Activity Name | `activity_date`, `activity_timezone`, `activity_timestamp`, `activity_type`, `description`, `path` |
 | `sensor.[username]_token_status` | Token Validity | `token_expiry`, `refresh_token_available`, `last_successful_call` |
 
@@ -168,9 +168,9 @@ cards:
     content: >
       ### 💪 Training Recommendation
 
-      **Status:** {{ states('sensor.[username]_fitness_status') }} | **Workout Suggestion:** {{ state_attr('sensor.[username]_workout_manager', 'recommended_workout_name') }} | **XSS:** {{ state_attr('sensor.[username]_training_progress', 'target_xss_total') | round(2) }}
+      **Status:** {{ states('sensor.[username]_fitness_status') }} | **Workout Suggestion:** {{ states('sensor.[username]_wotd') }} | **XSS:** {{ state_attr('sensor.[username]_training_progress', 'target_xss_total') | round(2) }}
 
-      **Description:** {{ state_attr('sensor.[username]_workout_manager', 'recommended_workout_description') }}
+      **Description:** {{ state_attr('sensor.[username]_wotd', 'description') }}
 
       **Last Workout:** {{ (state_attr('sensor.[username]_recent_activity', 'activity_date') | as_datetime + timedelta(hours=8)).timestamp() | timestamp_custom('%A, %d %B %Y, %I:%M %p') }}
 ```
