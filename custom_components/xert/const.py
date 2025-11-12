@@ -24,6 +24,7 @@ CONF_PASSWORD = "password"
 CONF_ACCESS_TOKEN = "access_token"
 CONF_REFRESH_TOKEN = "refresh_token"
 CONF_EXPIRES_IN = "expires_in"
+CONF_TOKEN_EXPIRES_AT = "token_expires_at"
 
 # Update intervals
 UPDATE_INTERVAL = timedelta(minutes=15)

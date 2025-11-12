@@ -1,0 +1,32 @@
+refresh_data:
+  name: Refresh Data
+  description: Manually refresh all Xert data immediately
+  fields:
+    entry_id:
+      name: Config Entry ID
+      description: The config entry ID to refresh (optional, refreshes all if not specified)
+      required: false
+      selector:
+        text:
+
+download_workout:
+  name: Download Workout
+  description: Download a workout file in ZWO or ERG format
+  fields:
+    workout_id:
+      name: Workout ID
+      description: The ID of the workout to download
+      required: true
+      example: "vovdxww5i7fzqbun"
+      selector:
+        text:
+    format:
+      name: Format
+      description: File format (zwo or erg)
+      required: false
+      default: "zwo"
+      selector:
+        select:
+          options:
+            - "zwo"
+            - "erg"

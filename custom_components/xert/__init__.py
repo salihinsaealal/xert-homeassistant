@@ -4,10 +4,14 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import timedelta
+from typing import Any
+
+import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import DOMAIN, UPDATE_INTERVAL
@@ -18,6 +22,23 @@ _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [Platform.SENSOR]
 
+# Service schemas
+SERVICE_REFRESH_DATA = "refresh_data"
+SERVICE_DOWNLOAD_WORKOUT = "download_workout"
+
+REFRESH_DATA_SCHEMA = vol.Schema(
+    {
+        vol.Optional("entry_id"): cv.string,
+    }
+)
+
+DOWNLOAD_WORKOUT_SCHEMA = vol.Schema(
+    {
+        vol.Required("workout_id"): cv.string,
+        vol.Optional("format", default="zwo"): vol.In(["zwo", "erg"]),
+    }
+)
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Xert from a config entry."""
@@ -27,7 +48,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     coordinator = XertDataUpdateCoordinator(
         hass,
         session,
-        entry.data,
+        entry,
         UPDATE_INTERVAL,
     )
 
@@ -36,6 +57,66 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    # Register services on first setup
+    if not hass.services.has_service(DOMAIN, SERVICE_REFRESH_DATA):
+        async def handle_refresh_data(call: ServiceCall) -> None:
+            """Handle refresh data service call."""
+            entry_id = call.data.get("entry_id")
+            
+            if entry_id:
+                # Refresh specific entry
+                if entry_id in hass.data[DOMAIN]:
+                    await hass.data[DOMAIN][entry_id].async_request_refresh()
+                    _LOGGER.info("Refreshed data for entry %s", entry_id)
+                else:
+                    _LOGGER.error("Entry ID %s not found", entry_id)
+            else:
+                # Refresh all entries
+                for coordinator in hass.data[DOMAIN].values():
+                    await coordinator.async_request_refresh()
+                _LOGGER.info("Refreshed data for all Xert integrations")
+
+        hass.services.async_register(
+            DOMAIN,
+            SERVICE_REFRESH_DATA,
+            handle_refresh_data,
+            schema=REFRESH_DATA_SCHEMA,
+        )
+
+    if not hass.services.has_service(DOMAIN, SERVICE_DOWNLOAD_WORKOUT):
+        async def handle_download_workout(call: ServiceCall) -> None:
+            """Handle download workout service call."""
+            workout_id = call.data["workout_id"]
+            format_type = call.data.get("format", "zwo")
+            
+            # Get the first coordinator (assuming single account)
+            coordinators = list(hass.data[DOMAIN].values())
+            if not coordinators:
+                _LOGGER.error("No Xert integration configured")
+                return
+            
+            coordinator = coordinators[0]
+            
+            try:
+                workout_data = await coordinator.download_workout(workout_id, format_type)
+                _LOGGER.info(
+                    "Downloaded workout %s in %s format (%d bytes)",
+                    workout_id,
+                    format_type,
+                    len(workout_data),
+                )
+                # You can save to file or return data as needed
+                # For now, just log success
+            except Exception as err:
+                _LOGGER.error("Failed to download workout: %s", err)
+
+        hass.services.async_register(
+            DOMAIN,
+            SERVICE_DOWNLOAD_WORKOUT,
+            handle_download_workout,
+            schema=DOWNLOAD_WORKOUT_SCHEMA,
+        )
 
     return True
 

@@ -7,7 +7,9 @@ from datetime import datetime, timedelta
 from typing import Any
 
 import aiohttp
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
@@ -21,6 +23,7 @@ from .const import (
     CONF_ACCESS_TOKEN,
     CONF_REFRESH_TOKEN,
     CONF_EXPIRES_IN,
+    CONF_TOKEN_EXPIRES_AT,
     OAUTH_CLIENT_ID,
     OAUTH_CLIENT_SECRET,
 )
@@ -35,18 +38,27 @@ class XertDataUpdateCoordinator(DataUpdateCoordinator):
         self,
         hass: HomeAssistant,
         session: aiohttp.ClientSession,
-        config_data: dict[str, Any],
+        config_entry: ConfigEntry,
         update_interval: timedelta,
     ) -> None:
         """Initialize."""
         self.session = session
-        self.config_data = config_data
-        self._access_token = config_data.get(CONF_ACCESS_TOKEN)
-        self._refresh_token = config_data.get(CONF_REFRESH_TOKEN)
+        self.config_entry = config_entry
+        self.config_data = config_entry.data
+        self._access_token = config_entry.data.get(CONF_ACCESS_TOKEN)
+        self._refresh_token = config_entry.data.get(CONF_REFRESH_TOKEN)
         self._token_expires = None
-        if config_data.get(CONF_EXPIRES_IN):
+        self._refresh_lock = asyncio.Lock()
+        self._is_refreshing = False
+        
+        # Load token expiry from stored timestamp or calculate from expires_in
+        if config_entry.data.get(CONF_TOKEN_EXPIRES_AT):
+            self._token_expires = dt_util.parse_datetime(
+                config_entry.data[CONF_TOKEN_EXPIRES_AT]
+            )
+        elif config_entry.data.get(CONF_EXPIRES_IN):
             self._token_expires = dt_util.utcnow() + timedelta(
-                seconds=config_data[CONF_EXPIRES_IN]
+                seconds=config_entry.data[CONF_EXPIRES_IN]
             )
 
         super().__init__(
@@ -86,37 +98,120 @@ class XertDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _ensure_valid_token(self) -> None:
         """Ensure we have a valid access token."""
-        if self._token_expires and dt_util.utcnow() >= self._token_expires:
+        if not self._token_expires:
+            _LOGGER.warning("Token expiry time not set, attempting refresh")
+            await self._refresh_access_token()
+            return
+        
+        # Refresh proactively 1 hour before expiry to avoid edge cases
+        refresh_threshold = self._token_expires - timedelta(hours=1)
+        
+        if dt_util.utcnow() >= refresh_threshold:
             await self._refresh_access_token()
 
     async def _refresh_access_token(self) -> None:
-        """Refresh the access token."""
+        """Refresh the access token with proper locking and persistence."""
         if not self._refresh_token:
-            raise UpdateFailed("No refresh token available")
+            raise ConfigEntryAuthFailed("No refresh token available")
 
-        data = {
-            "grant_type": "refresh_token",
-            "refresh_token": self._refresh_token,
-        }
+        # Use lock to prevent concurrent refresh attempts
+        async with self._refresh_lock:
+            # Check if another task already refreshed while we were waiting
+            if self._is_refreshing:
+                return
+            
+            self._is_refreshing = True
+            
+            try:
+                data = {
+                    "grant_type": "refresh_token",
+                    "refresh_token": self._refresh_token,
+                }
 
+                _LOGGER.debug("Attempting to refresh access token")
+                
+                async with self.session.post(
+                    TOKEN_URL,
+                    data=data,
+                    auth=aiohttp.BasicAuth(OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET),
+                ) as response:
+                    response_text = await response.text()
+                    
+                    if response.status == 400:
+                        _LOGGER.error("Token refresh failed with 400: %s", response_text)
+                        raise ConfigEntryAuthFailed(
+                            "Token refresh failed: Invalid or expired refresh token. "
+                            "Please re-authenticate."
+                        )
+                    
+                    if response.status == 401:
+                        _LOGGER.error("Token refresh failed with 401: %s", response_text)
+                        raise ConfigEntryAuthFailed(
+                            "Token refresh failed: Unauthorized. Please re-authenticate."
+                        )
+                    
+                    if response.status != 200:
+                        _LOGGER.error(
+                            "Token refresh failed with status %s: %s",
+                            response.status,
+                            response_text,
+                        )
+                        raise UpdateFailed(
+                            f"Token refresh failed with status {response.status}"
+                        )
+
+                    token_data = await response.json()
+                    
+                    # Update tokens in memory
+                    self._access_token = token_data["access_token"]
+                    self._refresh_token = token_data.get(
+                        "refresh_token", self._refresh_token
+                    )
+                    self._token_expires = dt_util.utcnow() + timedelta(
+                        seconds=token_data["expires_in"]
+                    )
+                    
+                    _LOGGER.info(
+                        "Successfully refreshed access token, expires at %s",
+                        self._token_expires.isoformat(),
+                    )
+                    
+                    # Persist tokens to config entry
+                    await self._persist_tokens()
+
+            except ConfigEntryAuthFailed:
+                # Re-raise auth errors to trigger reauth flow
+                raise
+            except aiohttp.ClientError as err:
+                _LOGGER.error("Network error during token refresh: %s", err)
+                raise UpdateFailed(f"Network error during token refresh: {err}") from err
+            except Exception as err:
+                _LOGGER.error("Unexpected error during token refresh: %s", err)
+                raise UpdateFailed(f"Token refresh error: {err}") from err
+            finally:
+                self._is_refreshing = False
+
+    async def _persist_tokens(self) -> None:
+        """Persist updated tokens to config entry."""
         try:
-            async with self.session.post(
-                TOKEN_URL,
-                data=data,
-                auth=aiohttp.BasicAuth(OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET),
-            ) as response:
-                if response.status != 200:
-                    raise UpdateFailed(f"Token refresh failed: {response.status}")
-
-                token_data = await response.json()
-                self._access_token = token_data["access_token"]
-                self._refresh_token = token_data.get("refresh_token", self._refresh_token)
-                self._token_expires = dt_util.utcnow() + timedelta(
-                    seconds=token_data["expires_in"]
-                )
-
+            # Get the config entry
+            entry = self.config_entry
+            
+            # Update config entry with new tokens
+            new_data = {
+                **entry.data,
+                CONF_ACCESS_TOKEN: self._access_token,
+                CONF_REFRESH_TOKEN: self._refresh_token,
+                CONF_TOKEN_EXPIRES_AT: self._token_expires.isoformat()
+                if self._token_expires
+                else None,
+            }
+            
+            self.hass.config_entries.async_update_entry(entry, data=new_data)
+            _LOGGER.debug("Persisted updated tokens to config entry")
+            
         except Exception as err:
-            raise UpdateFailed(f"Token refresh error: {err}") from err
+            _LOGGER.error("Failed to persist tokens: %s", err)
 
     async def _make_api_request(self, endpoint: str, params: dict = None) -> dict:
         """Make an authenticated API request."""
@@ -285,3 +380,24 @@ class XertDataUpdateCoordinator(DataUpdateCoordinator):
                 "difficulty": wotd.get("difficulty"),
             },
         }
+
+    async def download_workout(self, workout_id: str, format_type: str = "zwo") -> bytes:
+        """Download a workout file in specified format."""
+        url = f"https://www.xertonline.com/oauth/workout-download/{workout_id}.{format_type}"
+        headers = {"Authorization": f"Bearer {self._access_token}"}
+        
+        try:
+            async with self.session.get(url, headers=headers) as response:
+                if response.status == 401:
+                    # Token expired, refresh and retry
+                    await self._refresh_access_token()
+                    headers["Authorization"] = f"Bearer {self._access_token}"
+                    async with self.session.get(url, headers=headers) as retry_response:
+                        retry_response.raise_for_status()
+                        return await retry_response.read()
+                else:
+                    response.raise_for_status()
+                    return await response.read()
+        except Exception as err:
+            _LOGGER.error("Failed to download workout %s: %s", workout_id, err)
+            raise

@@ -8,6 +8,7 @@ Integrate your [Xert Online](https://www.xertonline.com/) fitness and training d
 
 ## Features
 - OAuth2 authentication with Xert Online
+- **🎉 NEW: Seamless re-authentication** - No need to delete/re-add integration when tokens expire!
 - 6 sensor entities:
   - Fitness Status
   - Training Progress
@@ -15,7 +16,10 @@ Integrate your [Xert Online](https://www.xertonline.com/) fitness and training d
   - Recent Activity
   - Token Status
   - Workout of the Day (WOTD)
-- Automatic token refresh
+- **🎉 NEW: Services** for manual data refresh and workout downloads
+- **🎉 NEW: Diagnostics platform** for easy troubleshooting
+- Automatic token refresh with persistence
+- Proactive token refresh (1 hour before expiry)
 - Data updates every 15 minutes
 - Beautiful dashboard-ready entities with Bubble Card support
 
@@ -67,15 +71,64 @@ The example dashboard YAML has been moved to a separate file for better readabil
 
 > This example uses the Bubble Card custom component for a beautiful, modern UI. Replace `[username]` with your Xert username.
 
+## Services
+
+### xert.refresh_data
+Manually refresh all Xert data immediately.
+
+```yaml
+service: xert.refresh_data
+```
+
+Or refresh a specific integration:
+```yaml
+service: xert.refresh_data
+data:
+  entry_id: "your_entry_id_here"
+```
+
+### xert.download_workout
+Download a workout file in ZWO or ERG format.
+
+```yaml
+service: xert.download_workout
+data:
+  workout_id: "vovdxww5i7fzqbun"
+  format: "zwo"  # or "erg"
+```
+
 ## Troubleshooting
-- Check `sensor.[username]_token_status` for API/auth issues
-- Enable debug logging in `configuration.yaml`:
-  ```yaml
-  logger:
-    default: warning
-    logs:
-      custom_components.xert: debug
-  ```
+
+### Re-authentication
+If your tokens expire, Home Assistant will automatically prompt you to re-authenticate:
+1. Go to **Settings → Devices & Services**
+2. Look for the Xert integration with a "Configure" button
+3. Click **Configure** and enter your password
+4. Done! No need to delete and re-add the integration
+
+### Token Issues
+- Check `sensor.[username]_token_status` for current token state
+- Token automatically refreshes 1 hour before expiry
+- If you see "Token refresh failed: 400", the reauth flow will trigger automatically
+
+### Debug Logging
+Enable debug logging in `configuration.yaml`:
+```yaml
+logger:
+  default: warning
+  logs:
+    custom_components.xert: debug
+```
+
+### Diagnostics
+Download diagnostics for troubleshooting:
+1. Go to **Settings → Devices & Services**
+2. Click on the Xert integration
+3. Click the three dots menu (⋮)
+4. Select **Download diagnostics**
+
+### Support
+- For integration issues, open an issue on [GitHub](https://github.com/salihinsaealal/xert-homeassistant/issues)
 - For Xert account issues, contact [Xert support](mailto:support@xertonline.com)
 
 ## Privacy
@@ -83,10 +136,13 @@ The example dashboard YAML has been moved to a separate file for better readabil
 - No training data is stored beyond current values
 
 ## Version History
+- **2.0.0** - 🎉 Major update: Seamless re-authentication, token persistence, services, diagnostics, enhanced error handling
 - **1.0.5** - Fixed HACS icon display issues, updated icon and logo files
 - **1.0.2** - Add recommended workout and details to workout_manager sensor; entity IDs now use username prefix
 - **1.0.1** - Bugfixes, entity_id prefix, improved docs, and dashboard example
 - **1.0.0** - Initial release with basic sensor entities
+
+See [CHANGELOG.md](CHANGELOG.md) for detailed release notes.
 
 ## License
 MIT 
