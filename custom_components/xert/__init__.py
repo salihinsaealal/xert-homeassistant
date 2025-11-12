@@ -13,8 +13,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.device_registry import DeviceEntry
-from homeassistant.helpers.entity_registry import async_get
+from homeassistant.helpers.device_registry import async_get as async_get_device_registry
 
 from .const import DOMAIN, UPDATE_INTERVAL
 from .coordinator import XertDataUpdateCoordinator
@@ -146,9 +145,7 @@ def _create_device(
     coordinator: XertDataUpdateCoordinator,
 ) -> None:
     """Create a device for the Xert integration."""
-    from homeassistant.helpers.device_registry import DeviceRegistry
-    
-    device_registry: DeviceRegistry = hass.helpers.device_registry.async_get(hass)
+    device_registry = async_get_device_registry(hass)
     
     username = entry.data.get("username", "Xert Online")
     
