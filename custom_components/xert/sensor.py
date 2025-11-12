@@ -49,6 +49,12 @@ class XertSensor(SensorEntity):
         self.coordinator = coordinator
         self._sensor_type = sensor_type
         self._attr_has_entity_name = True
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, coordinator.config_entry.entry_id)},
+            "name": f"Xert Online - {coordinator.config_data.get('username', 'Xert')}",
+            "manufacturer": "Xert Online",
+            "model": "API Client",
+        }
 
     @property
     def available(self) -> bool:

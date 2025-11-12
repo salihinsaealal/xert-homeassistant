@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2024-11-12
+
+### ✨ Improvements
+
+#### Device Grouping
+- **All sensors now grouped under a single device** in Home Assistant
+- Cleaner UI with all entities visible in one place
+- Device shows:
+  - Device name: "Xert Online - [username]"
+  - Manufacturer: Xert Online
+  - Model: API Client
+  - Software version: Integration version
+  - Configuration URL: Link to Xert Online
+
+**Impact:** Much easier to view and manage all Xert entities!
+
+---
+
 ## [2.0.0] - 2025-11-12
 
 ### 🎉 Major Features

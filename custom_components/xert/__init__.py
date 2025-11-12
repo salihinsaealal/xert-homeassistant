@@ -13,6 +13,8 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.device_registry import DeviceEntry
+from homeassistant.helpers.entity_registry import async_get
 
 from .const import DOMAIN, UPDATE_INTERVAL
 from .coordinator import XertDataUpdateCoordinator
@@ -55,6 +57,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await coordinator.async_config_entry_first_refresh()
 
     hass.data[DOMAIN][entry.entry_id] = coordinator
+
+    # Create device for this integration
+    _create_device(hass, entry, coordinator)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -133,3 +138,27 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Reload config entry."""
     await async_unload_entry(hass, entry)
     await async_setup_entry(hass, entry)
+
+
+def _create_device(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    coordinator: XertDataUpdateCoordinator,
+) -> None:
+    """Create a device for the Xert integration."""
+    from homeassistant.helpers.device_registry import DeviceRegistry
+    
+    device_registry: DeviceRegistry = hass.helpers.device_registry.async_get(hass)
+    
+    username = entry.data.get("username", "Xert Online")
+    
+    device_registry.async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers={(DOMAIN, entry.entry_id)},
+        name=f"Xert Online - {username}",
+        manufacturer="Xert Online",
+        model="API Client",
+        sw_version=__version__,
+        hw_version="1.0",
+        configuration_url="https://www.xertonline.com/",
+    )
